@@ -25,4 +25,30 @@ export class DiseasesService {
     if (error) throw new Error(error.message);
     return data;
   }
+
+  async addDisease(
+    userId: string,
+    name: string,
+    category: string,
+    description?: string,
+  ) {
+    if (!userId || !name || !category) {
+      throw new Error('User ID, Name, and Category are required fields.');
+    }
+
+    const { data, error } = await this.supabase
+      .from('hs_diseases')
+      .insert([
+        {
+          user_id: userId,
+          name: name,
+          category: category,
+          description: description || null,
+        },
+      ])
+      .single();
+
+    if (error) throw new Error(error.message);
+    return data;
+  }
 }
