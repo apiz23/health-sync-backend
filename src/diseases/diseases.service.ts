@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, Injectable, HttpStatus } from '@nestjs/common';
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 
 @Injectable()
@@ -32,23 +32,42 @@ export class DiseasesService {
     category: string,
     description?: string,
   ) {
-    if (!userId || !name || !category) {
-      throw new Error('User ID, Name, and Category are required fields.');
+    try {
+      if (!userId || !name || !category) {
+        throw new HttpException(
+          'User ID, Name, and Category are required fields.',
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+
+      const { data, error } = await this.supabase
+        .from('hs_diseases')
+        .insert([
+          {
+            user_id: userId,
+            name: name,
+            category: category,
+            description: description || null,
+          },
+        ])
+        .select()
+        .single();
+
+      if (error) {
+        console.error('Supabase Insert Error:', error);
+        throw new HttpException(
+          error.message,
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+      }
+
+      return data;
+    } catch (error) {
+      console.error('Error in addDisease:', error);
+      throw new HttpException(
+        'Failed to add disease',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
     }
-
-    const { data, error } = await this.supabase
-      .from('hs_diseases')
-      .insert([
-        {
-          user_id: userId,
-          name: name,
-          category: category,
-          description: description || null,
-        },
-      ])
-      .single();
-
-    if (error) throw new Error(error.message);
-    return data;
   }
 }
