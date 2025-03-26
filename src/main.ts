@@ -7,13 +7,14 @@ dotenv.config();
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  app.enableCors({
+  const corsOptions = {
     origin: '*',
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
+    methods: 'GET,PUT,POST,DELETE',
     credentials: true,
-  });
+    allowedHeaders: 'Content-Type,Authorization',
+  };
 
+  app.enableCors(corsOptions);
   await app.listen(process.env.PORT || 3001);
 }
 bootstrap();
